@@ -1,31 +1,28 @@
 "use strict";
 
-require('dotenv').config();
+require("dotenv").config();
 
 const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
 const apiRoutes = require("./routes/api");
-const mongoose = require('mongoose');
 const app = express();
 
-// 🧠 Conexión a MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('✅ MongoDB conectado correctamente'))
-.catch(err => console.error('❌ Error al conectar con MongoDB:', err.message));
+// =====================================================
+// 🛡️ CONFIGURACIÓN DE SEGURIDAD
+// =====================================================
 
-
-// Seguridad con Helmet
+// Eliminar encabezados que revelan información
 app.use(helmet.hidePoweredBy());
 app.use(helmet.noSniff());
 app.use(helmet.xssFilter());
 
-// Forzar manualmente el Content Security Policy exacto que requiere FreeCodeCamp
+// Forzar el encabezado CSP EXACTO que FreeCodeCamp espera
 app.use((req, res, next) => {
-  res.removeHeader("Content-Security-Policy"); // eliminamos el que pone Replit
+  // Si Replit agrega uno, lo eliminamos primero
+  res.removeHeader("Content-Security-Policy");
+
+  // Política mínima permitida por FreeCodeCamp
   res.setHeader(
     "Content-Security-Policy",
     "default-src 'self'; script-src 'self'; style-src 'self'"
@@ -33,10 +30,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// Permitir CORS (para que FreeCodeCamp acceda)
+// =====================================================
+// 🌐 CONFIGURACIÓN GENERAL DEL SERVIDOR
+// =====================================================
+
+// Permitir CORS (FreeCodeCamp accede desde su dominio)
 app.use(cors({ origin: "*" }));
 
-// Ruta principal
+// Página principal de prueba
 app.get("/", (req, res) => {
   res.send("🚀 Stock Price Checker activo");
 });
@@ -44,8 +45,12 @@ app.get("/", (req, res) => {
 // Rutas API
 apiRoutes(app);
 
-// Iniciar servidor
+// =====================================================
+// 🚀 INICIAR SERVIDOR
+// =====================================================
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Servidor escuchando en puerto ${PORT}`));
+app.listen(PORT, "0.0.0.0", () =>
+  console.log(`Servidor escuchando en 0.0.0.0:${PORT}`)
+);
 
 module.exports = app;
