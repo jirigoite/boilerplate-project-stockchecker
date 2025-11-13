@@ -19,19 +19,21 @@ mongoose.connect(process.env.MONGO_URI, {
 
 
 // Seguridad con Helmet
+// Seguridad con Helmet (CSP: solo scripts y estilos del mismo servidor)
 app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'"],
-      },
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
+      scriptSrcAttr: ["'none'"],
+      styleSrcElem: ["'self'"]
     },
-    crossOriginEmbedderPolicy: false, // evita errores en Replit
   })
 );
 
+// Quita información sensible del header
+app.use(helmet.hidePoweredBy());
 
 // Permitir CORS (para que FreeCodeCamp acceda)
 app.use(cors({ origin: "*" }));
