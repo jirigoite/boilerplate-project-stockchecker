@@ -3,46 +3,40 @@
 require("dotenv").config();
 
 const express = require("express");
-const helmet = require("helmet");
 const cors = require("cors");
 const apiRoutes = require("./routes/api");
 const app = express();
 
 // =====================================================
-// 🛡️ CONFIGURACIÓN DE SEGURIDAD
+// 🛡️ CONTENT SECURITY POLICY — EXACTO COMO FREECODECAMP PIDE
 // =====================================================
 
-// Eliminar encabezados que revelan información
-app.use(helmet.hidePoweredBy());
-app.use(helmet.noSniff());
-app.use(helmet.xssFilter());
-
-// Forzar el encabezado CSP EXACTO que FreeCodeCamp espera
+// Middleware CSP (debe estar ARRIBA, antes de todo)
 app.use((req, res, next) => {
-  // Si Replit agrega uno, lo eliminamos primero
+  // Evitar que Replit/other middlewares agreguen CSP adicionales
   res.removeHeader("Content-Security-Policy");
+  res.removeHeader("X-Content-Security-Policy");
+  res.removeHeader("X-Webkit-Csp");
 
-  // Política mínima permitida por FreeCodeCamp
+  // 💯 ESTE ES EL VALOR EXACTO QUE FREECODECAMP VALIDA
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self'; style-src 'self'"
+    "default-src 'self'; script-src 'self'; style-src 'self';"
   );
+
   next();
 });
 
 // =====================================================
 // 🌐 CONFIGURACIÓN GENERAL DEL SERVIDOR
 // =====================================================
-
-// Permitir CORS (FreeCodeCamp accede desde su dominio)
 app.use(cors({ origin: "*" }));
 
-// Página principal de prueba
 app.get("/", (req, res) => {
   res.send("🚀 Stock Price Checker activo");
 });
 
-// Rutas API
+// API Routes
 apiRoutes(app);
 
 // =====================================================
